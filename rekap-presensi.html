@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rekap Presensi — SMA Plus PGRI Cibinong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2740;
+    --ink-soft:#525C72;
+    --paper:#EFF1EC;
+    --surface:#FAFAF7;
+    --line:rgba(27,39,64,0.14);
+    --line-strong:rgba(27,39,64,0.28);
+    --stamp:#A8342A;
+    --stamp-soft:rgba(168,52,42,0.12);
+    --ochre:#B8862E;
+    --ochre-soft:rgba(184,134,46,0.14);
+    --teal:#1F7A67;
+    --teal-soft:rgba(31,122,103,0.13);
+    --violet:#5C4D8A;
+    --violet-soft:rgba(92,77,138,0.13);
+    --radius:10px;
+    --shadow:0 1px 2px rgba(27,39,64,0.06), 0 8px 24px -12px rgba(27,39,64,0.18);
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:32px 32px;
+    background-position:-1px -1px;
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--stamp-soft); }
+
+  a{ color:inherit; }
+
+  :focus-visible{
+    outline:2px solid var(--stamp);
+    outline-offset:2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  .page{
+    max-width:860px;
+    margin:0 auto;
+    padding:28px 20px 64px;
+  }
+
+  /* ---------- LETTERHEAD ---------- */
+  .letterhead{
+    border-top:3px solid var(--ink);
+    border-bottom:1px solid var(--line-strong);
+    padding:18px 0 16px;
+    margin-bottom:28px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .letterhead__eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .letterhead__title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(26px, 4vw, 34px);
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  .letterhead__mark{
+    width:46px; height:46px;
+    border:2px solid var(--ink);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .letterhead__mark svg{ width:22px; height:22px; }
+
+  main{ display:flex; flex-direction:column; gap:18px; }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:24px;
+  }
+
+  h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:18px;
+    margin:0 0 4px;
+  }
+  .panel__hint{
+    color:var(--ink-soft);
+    font-size:14px;
+    margin:0 0 18px;
+  }
+
+  /* ---------- DROPZONE ---------- */
+  .dropzone{
+    border:2px dashed var(--line-strong);
+    border-radius:8px;
+    padding:36px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color .15s ease, background-color .15s ease;
+    background:transparent;
+  }
+  .dropzone:hover, .dropzone:focus-visible{
+    border-color:var(--stamp);
+    background:var(--stamp-soft);
+  }
+  .dropzone.is-drag{
+    border-color:var(--stamp);
+    background:var(--stamp-soft);
+  }
+  .dropzone__icon{
+    width:38px; height:38px;
+    margin:0 auto 12px;
+    color:var(--ink-soft);
+  }
+  .dropzone__title{
+    font-weight:600;
+    font-size:15px;
+    margin:0 0 4px;
+  }
+  .dropzone__sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin:0;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .dropzone input[type=file]{ display:none; }
+
+  .error-banner{
+    margin-top:14px;
+    padding:12px 14px;
+    border:1px solid var(--stamp);
+    background:var(--stamp-soft);
+    color:var(--stamp);
+    border-radius:8px;
+    font-size:13.5px;
+    line-height:1.5;
+  }
+  .error-banner strong{ display:block; margin-bottom:2px; color:var(--ink); }
+
+  /* ---------- DETAILS / INFO ---------- */
+  details{
+    margin-top:14px;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  details + details{ border-top:1px solid var(--line); }
+  summary{
+    cursor:pointer;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    list-style:none;
+  }
+  summary::-webkit-details-marker{ display:none; }
+  summary::before{
+    content:"▸ ";
+    display:inline-block;
+    transition:transform .15s ease;
+  }
+  details[open] summary::before{ transform:rotate(90deg); }
+  .info-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+    font-size:13px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .info-table th, .info-table td{
+    text-align:left;
+    padding:7px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .info-table th{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    color:var(--ink-soft);
+    font-size:12px;
+  }
+  .info-note{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.6;
+    margin:12px 0 0;
+  }
+  .info-note code{
+    font-family:'IBM Plex Mono', monospace;
+    background:var(--paper);
+    padding:1px 5px;
+    border-radius:4px;
+    font-size:12px;
+  }
+
+  /* ---------- PROCESSING ---------- */
+  .processing{
+    padding:40px 24px;
+    text-align:center;
+    color:var(--ink-soft);
+  }
+  .processing__clock{
+    width:34px; height:34px;
+    margin:0 auto 14px;
+    border:2px solid var(--ink-soft);
+    border-radius:50%;
+    position:relative;
+  }
+  .processing__clock::before, .processing__clock::after{
+    content:"";
+    position:absolute;
+    background:var(--ink-soft);
+    top:50%; left:50%;
+    transform-origin:0% 100%;
+  }
+  .processing__clock::before{ width:1.5px; height:10px; margin-left:-0.75px; margin-top:-10px; animation:spin 2s linear infinite; }
+  .processing__clock::after{ width:1.5px; height:7px; margin-left:-0.75px; margin-top:-7px; animation:spin 6s linear infinite; }
+  @keyframes spin{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+  .processing__label{ font-family:'IBM Plex Mono', monospace; font-size:13px; }
+
+  /* ---------- RESULTS ---------- */
+  .results-header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+  }
+  .stamp-block{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .stamp{
+    width:64px; height:64px;
+    border:2.5px solid var(--stamp);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    color:var(--stamp);
+    transform:rotate(-6deg);
+    position:relative;
+  }
+  .stamp::after{
+    content:"";
+    position:absolute;
+    inset:5px;
+    border:1px solid var(--stamp);
+    border-radius:50%;
+  }
+  .stamp__text{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:8.5px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-align:center;
+    line-height:1.25;
+    text-transform:uppercase;
+  }
+  .stamp.is-in{ animation:stampDown .55s cubic-bezier(.22,.85,.3,1.15); }
+  @keyframes stampDown{
+    0%{ transform:translateY(-30px) rotate(-14deg) scale(1.35); opacity:0; }
+    55%{ transform:translateY(3px) rotate(-4deg) scale(0.96); opacity:1; }
+    100%{ transform:translateY(0) rotate(-6deg) scale(1); opacity:1; }
+  }
+
+  .period-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    margin:0;
+  }
+  .period-sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:4px 0 0;
+  }
+
+  .results-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .btn{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:9px 14px;
+    border-radius:7px;
+    border:1px solid var(--line-strong);
+    background:var(--surface);
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s ease, background-color .15s ease;
+  }
+  .btn:hover{ border-color:var(--ink); }
+  .btn--primary{
+    background:var(--ink);
+    border-color:var(--ink);
+    color:var(--surface);
+  }
+  .btn--primary:hover{ background:#0F1830; }
+
+  .summary-strip{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(120px,1fr));
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    margin-bottom:20px;
+  }
+  .summary-cell{
+    background:var(--surface);
+    padding:12px 14px;
+  }
+  .summary-cell__num{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:22px;
+    line-height:1;
+  }
+  .summary-cell__label{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:18px;
+    padding-bottom:18px;
+    border-bottom:1px solid var(--line);
+  }
+  .chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:20px;
+    border:1px solid var(--line-strong);
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .chip[data-color="terlambat"].is-active{ background:var(--ochre-soft); border-color:var(--ochre); color:var(--ochre); }
+  .chip[data-color="tidak_masuk"].is-active{ background:var(--stamp-soft); border-color:var(--stamp); color:var(--stamp); }
+  .chip[data-color="tidak_pulang"].is-active{ background:rgba(82,92,114,0.12); border-color:var(--ink-soft); color:var(--ink-soft); }
+  .chip[data-color="izin"].is-active{ background:var(--teal-soft); border-color:var(--teal); color:var(--teal); }
+  .chip[data-color="sakit"].is-active{ background:var(--violet-soft); border-color:var(--violet); color:var(--violet); }
+  .chip[data-color="alpa"].is-active{ background:var(--stamp); border-color:var(--stamp); color:#fff; }
+  .chip[data-color="semua"].is-active{ background:var(--ink); border-color:var(--ink); color:var(--surface); }
+
+  .search-wrap{
+    margin-left:auto;
+    position:relative;
+    min-width:180px;
+    flex:1 1 180px;
+  }
+  .search-wrap input{
+    width:100%;
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+    padding:8px 12px 8px 30px;
+    border-radius:20px;
+    border:1px solid var(--line-strong);
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .search-wrap svg{
+    position:absolute;
+    left:10px; top:50%;
+    transform:translateY(-50%);
+    width:14px; height:14px;
+    color:var(--ink-soft);
+  }
+
+  .cards{ display:flex; flex-direction:column; gap:10px; }
+  .card{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:14px 16px;
+    background:var(--surface);
+  }
+  .card__head{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .card__name{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    margin:0;
+  }
+  .card__role{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .card__entries{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex; flex-direction:column; gap:5px;
+  }
+  .entry{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    font-size:13px;
+    padding:4px 0;
+  }
+  .entry__label{
+    font-weight:600;
+    padding:2px 8px;
+    border-radius:4px;
+    font-size:11.5px;
+    font-family:'IBM Plex Mono', monospace;
+    white-space:nowrap;
+  }
+  .entry__dates{ color:var(--ink-soft); }
+  .entry--terlambat .entry__label{ background:var(--ochre-soft); color:var(--ochre); }
+  .entry--tidak_masuk .entry__label{ background:var(--stamp-soft); color:var(--stamp); }
+  .entry--tidak_pulang .entry__label{ background:rgba(82,92,114,0.12); color:var(--ink-soft); }
+  .entry--izin .entry__label{ background:var(--teal-soft); color:var(--teal); }
+  .entry--sakit .entry__label{ background:var(--violet-soft); color:var(--violet); }
+  .entry--alpa .entry__label{ background:var(--stamp); color:#fff; }
+
+  .empty-state{
+    text-align:center;
+    padding:40px 16px;
+    color:var(--ink-soft);
+  }
+  .empty-state__icon{ width:34px; height:34px; margin:0 auto 12px; color:var(--teal); }
+  .empty-state p{ margin:0; font-size:14px; }
+
+  .no-match{
+    text-align:center;
+    padding:24px;
+    color:var(--ink-soft);
+    font-size:13px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  footer{
+    margin-top:32px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    font-size:12px;
+    color:var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  [hidden]{ display:none !important; }
+
+  @media (max-width:560px){
+    .panel{ padding:18px; }
+    .results-header{ flex-direction:column; }
+    .results-actions{ width:100%; }
+    .results-actions .btn{ flex:1; }
+    .search-wrap{ flex-basis:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="letterhead">
+    <div>
+      <p class="letterhead__eyebrow">TIK · SMA Plus PGRI Cibinong</p>
+      <h1 class="letterhead__title">Rekap Presensi</h1>
+    </div>
+    <div class="letterhead__mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 7v5l3.2 2"/>
+      </svg>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ============ UPLOAD ============ -->
+    <section class="panel" id="uploadSection">
+      <h2>Unggah file presensi</h2>
+      <p class="panel__hint">Unggah rekap kehadiran (.xlsx) untuk dianalisis. Semua proses berjalan langsung di peramban ini — file tidak dikirim ke server mana pun.</p>
+
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Pilih atau tarik file Excel presensi">
+        <svg class="dropzone__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 16V4M12 4l-4 4M12 4l4 4"/>
+          <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>
+        </svg>
+        <p class="dropzone__title">Tarik &amp; lepas file .xlsx di sini, atau klik untuk memilih</p>
+        <p class="dropzone__sub">NAMA · JABATAN · TANGGAL · DATANG · PULANG · STATUS</p>
+        <input type="file" id="fileInput" accept=".xlsx,.xls">
+      </div>
+
+      <div class="error-banner" id="errorBanner" hidden></div>
+
+      <details>
+        <summary>Aturan jam masuk per kelompok jabatan</summary>
+        <table class="info-table">
+          <thead><tr><th>Kelompok jabatan</th><th>Batas jam masuk</th></tr></thead>
+          <tbody>
+            <tr><td>TU, Koperasi, DKM, Koki, Dapodik, TIK, dll (default)</td><td>08:00</td></tr>
+            <tr><td>Security — shift pagi (datang sebelum jam 12)</td><td>06:30</td></tr>
+            <tr><td>Security — shift malam (datang jam 12 ke atas)</td><td>17:30</td></tr>
+            <tr><td>OB (Office Boy / Cleaning)</td><td>06:30</td></tr>
+            <tr><td>Driver / Koordinator Driver</td><td>07:15</td></tr>
+            <tr><td>Maintenance / Teknisi</td><td>07:15</td></tr>
+          </tbody>
+        </table>
+      </details>
+
+      <details>
+        <summary>Format kolom yang dibutuhkan</summary>
+        <p class="info-note">
+          File harus memiliki baris header dengan kolom <code>NAMA</code>, <code>JABATAN</code>, <code>TANGGAL</code>, <code>DATANG</code>, <code>PULANG</code>, dan <code>STATUS</code>. Kolom <code>KETERANGAN</code> bersifat opsional.
+          Baris dengan status <code>Dinas Luar</code> atau <code>Cuti</code> dilewati. Baris dengan keterangan/status mengandung kata <code>libur</code> juga dilewati. Status <code>Izin</code>, <code>Sakit</code>, dan <code>Alpa</code> tetap direkap.
+        </p>
+        <table class="info-table">
+          <thead><tr><th>NAMA</th><th>JABATAN</th><th>TANGGAL</th><th>DATANG</th><th>PULANG</th><th>STATUS</th></tr></thead>
+          <tbody>
+            <tr><td>Budi Santoso</td><td>Security</td><td>09/04/2026</td><td>06:45</td><td>17:40</td><td>Hadir</td></tr>
+          </tbody>
+        </table>
+      </details>
+    </section>
+
+    <!-- ============ PROCESSING ============ -->
+    <section class="processing" id="processingState" hidden>
+      <div class="processing__clock" aria-hidden="true"></div>
+      <p class="processing__label" id="processingLabel">Membaca file…</p>
+    </section>
+
+    <!-- ============ RESULTS ============ -->
+    <section class="panel results-panel" id="resultsSection" hidden>
+
+      <div class="results-header">
+        <div class="stamp-block">
+          <div class="stamp" id="stampMark" aria-hidden="true">
+            <div class="stamp__text" id="stampText">—</div>
+          </div>
+          <div>
+            <p class="period-title" id="periodTitle">—</p>
+            <p class="period-sub" id="periodSub">—</p>
+          </div>
+        </div>
+        <div class="results-actions">
+          <button class="btn" id="resetBtn" type="button">Ganti file</button>
+          <button class="btn btn--primary" id="downloadBtn" type="button">Unduh .txt</button>
+        </div>
+      </div>
+
+      <div class="summary-strip" id="summaryStrip"></div>
+
+      <div class="toolbar">
+        <div class="chips" id="chips"></div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="searchInput" placeholder="Cari nama atau jabatan…">
+        </div>
+      </div>
+
+      <div class="cards" id="cardsContainer"></div>
+
+      <div class="empty-state" id="emptyState" hidden>
+        <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6 9 17l-5-5"/></svg>
+        <p>Tidak ada pelanggaran presensi pada periode ini.</p>
+      </div>
+
+      <div class="no-match" id="noMatch" hidden>Tidak ada nama yang cocok dengan pencarian atau filter ini.</div>
+
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Rekap Presensi · TIK SMA Plus PGRI Cibinong</span>
+    <span id="fileInfo"></span>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ─────────────────────────────────────────────
+  //  KONFIGURASI (identik dengan skrip Python)
+  // ─────────────────────────────────────────────
+
+  const BATAS_MASUK_SECONDS = {
+    security_pagi:  6*3600 + 30*60,
+    security_malam: 17*3600 + 30*60,
+    ob:             6*3600 + 30*60,
+    driver:         7*3600 + 15*60,
+    maintenance:    7*3600 + 15*60,
+    default:        8*3600
+  };
+
+  const JABATAN_MAP = {
+    security:    ["security", "satpam"],
+    ob:          ["ob", "office boy", "cleaning"],
+    driver:      ["driver", "sopir"],
+    maintenance: ["maintenance", "teknisi"]
+  };
+
+  const STATUS_DIKECUALIKAN = new Set(["dinas luar", "cuti"]);
+
+  const BULAN_ID = {1:"Januari",2:"Februari",3:"Maret",4:"April",5:"Mei",6:"Juni",
+                     7:"Juli",8:"Agustus",9:"September",10:"Oktober",11:"November",12:"Desember"};
+
+  const KATEGORI_LABEL = {
+    terlambat:    "Terlambat",
+    tidak_masuk:  "Tidak absen masuk",
+    tidak_pulang: "Tidak absen pulang",
+    izin:         "Izin",
+    sakit:        "Sakit",
+    alpa:         "Alpa"
+  };
+  const KATEGORI_URUT = ["terlambat","tidak_masuk","tidak_pulang","izin","sakit","alpa"];
+
+  // ─────────────────────────────────────────────
+  //  FUNGSI BANTU — konversi tanggal & waktu Excel
+  // ─────────────────────────────────────────────
+
+  // Serial Excel (hari sejak 1899-12-30) -> komponen UTC (aman dari pergeseran zona waktu)
+  function serialToUTC(serial){
+    const ms = Math.round((serial - 25569) * 86400 * 1000);
+    return new Date(ms);
+  }
+
+  function parseTanggal(cell){
+    if (cell === null || cell === undefined || cell === "") return null;
+    if (typeof cell === "number"){
+      const d = serialToUTC(Math.floor(cell));
+      return { y: d.getUTCFullYear(), m: d.getUTCMonth()+1, d: d.getUTCDate() };
+    }
+    const s = String(cell).trim();
+    if (!s || s.toLowerCase() === "nan" || s.toLowerCase() === "nat") return null;
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return { y:+m[1], m:+m[2], d:+m[3] };
+    m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (m) return { y:+m[3], m:+m[2], d:+m[1] };
+    const dt = new Date(s);
+    if (!isNaN(dt.getTime())) return { y: dt.getFullYear(), m: dt.getMonth()+1, d: dt.getDate() };
+    return null;
+  }
+
+  // Mengembalikan detik-sejak-tengah-malam, atau null jika kosong/tidak valid
+  function parseWaktu(cell){
+    if (cell === null || cell === undefined) return null;
+    if (typeof cell === "number"){
+      const frac = cell - Math.floor(cell);
+      const totalSec = Math.round((frac < 0 ? frac + 1 : frac) * 86400) % 86400;
+      return totalSec;
+    }
+    const s = String(cell).trim();
+    if (!s || s.toLowerCase() === "nan" || s.toLowerCase() === "nat") return null;
+    const m = s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (!m) return null;
+    const h = parseInt(m[1],10) % 24;
+    const min = parseInt(m[2],10);
+    const sec = m[3] ? parseInt(m[3],10) : 0;
+    if (isNaN(h) || isNaN(min)) return null;
+    return h*3600 + min*60 + sec;
+  }
+
+  function formatTanggal(dp){
+    return `${String(dp.d).padStart(2,"0")} ${BULAN_ID[dp.m]}`;
+  }
+
+  function gabungTanggal(list){
+    if (list.length === 1) return list[0];
+    if (list.length === 2) return `${list[0]} dan ${list[1]}`;
+    return list.join(", ");
+  }
+
+  function getBatas(jabatanStr, datangSeconds){
+    const j = String(jabatanStr || "").toLowerCase();
+    if (JABATAN_MAP.security.some(k => j.includes(k))){
+      return (datangSeconds !== null && datangSeconds < 12*3600)
+        ? BATAS_MASUK_SECONDS.security_pagi
+        : BATAS_MASUK_SECONDS.security_malam;
+    }
+    if (JABATAN_MAP.ob.some(k => j.includes(k))) return BATAS_MASUK_SECONDS.ob;
+    if (JABATAN_MAP.driver.some(k => j.includes(k))) return BATAS_MASUK_SECONDS.driver;
+    if (JABATAN_MAP.maintenance.some(k => j.includes(k))) return BATAS_MASUK_SECONDS.maintenance;
+    return BATAS_MASUK_SECONDS.default;
+  }
+
+  // ─────────────────────────────────────────────
+  //  LOAD & BERSIHKAN DATA
+  // ─────────────────────────────────────────────
+
+  function loadData(rows){
+    let headerRowIdx = -1;
+    for (let i=0;i<rows.length;i++){
+      const valsUpper = (rows[i]||[]).map(v => String(v ?? "").trim().toUpperCase());
+      if (valsUpper.includes("NAMA") && valsUpper.includes("TANGGAL")){ headerRowIdx = i; break; }
+    }
+    if (headerRowIdx === -1){
+      throw new Error("Header kolom (NAMA, TANGGAL) tidak ditemukan. Periksa format file.");
+    }
+
+    const headerRaw = rows[headerRowIdx].map(v => String(v ?? "").trim().toUpperCase());
+    const colIndex = {};
+    headerRaw.forEach((name, idx) => { if (name) colIndex[name] = idx; });
+
+    const required = ["NAMA","JABATAN","TANGGAL","DATANG","PULANG","STATUS"];
+    const missing = required.filter(c => !(c in colIndex));
+    if (missing.length){
+      throw new Error(`Kolom berikut tidak ditemukan di file: ${missing.join(", ")}`);
+    }
+    const hasKeterangan = "KETERANGAN" in colIndex;
+
+    const dataRows = rows.slice(headerRowIdx+1);
+
+    // Hanya baris dengan TANGGAL valid
+    const withDate = [];
+    for (const r of dataRows){
+      if (!r) continue;
+      const tgl = parseTanggal(colIndex["TANGGAL"] !== undefined ? r[colIndex["TANGGAL"]] : "");
+      if (!tgl) continue;
+      withDate.push({ r, tgl });
+    }
+
+    // Forward-fill NAMA & JABATAN (sel digabung di Excel), lalu buang baris tanpa nama
+    let lastNama = null, lastJabatan = null;
+    const cleaned = [];
+    const get = (r, col) => colIndex[col] !== undefined ? r[colIndex[col]] : "";
+
+    for (const { r, tgl } of withDate){
+      const namaRaw = String(get(r,"NAMA") ?? "").trim();
+      const jabatanRaw = String(get(r,"JABATAN") ?? "").trim();
+      const nama = namaRaw || lastNama;
+      const jabatan = jabatanRaw || lastJabatan;
+      if (namaRaw) lastNama = namaRaw;
+      if (jabatanRaw) lastJabatan = jabatanRaw;
+      if (!nama || nama.toUpperCase() === "NAMA") continue;
+
+      cleaned.push({
+        nama, jabatan: jabatan || "",
+        tanggal: tgl,
+        datangRaw: get(r,"DATANG"),
+        pulangRaw: get(r,"PULANG"),
+        status: String(get(r,"STATUS") ?? "").trim(),
+        keterangan: hasKeterangan ? String(get(r,"KETERANGAN") ?? "").trim() : ""
+      });
+    }
+    return cleaned;
+  }
+
+  // ─────────────────────────────────────────────
+  //  PROSES REKAP
+  // ─────────────────────────────────────────────
+
+  function prosesRekap(rows){
+    const hasil = {};
+    for (const row of rows){
+      const keteranganLower = row.keterangan.toLowerCase();
+      const statusLower = row.status.toLowerCase();
+      const tanggalStr = formatTanggal(row.tanggal);
+
+      if (keteranganLower.includes("libur") || statusLower.includes("libur")) continue;
+      if (STATUS_DIKECUALIKAN.has(statusLower)) continue;
+
+      const datang = parseWaktu(row.datangRaw);
+      const pulang = parseWaktu(row.pulangRaw);
+
+      if (!hasil[row.nama]){
+        hasil[row.nama] = { jabatan: row.jabatan, terlambat:[], tidak_masuk:[], tidak_pulang:[], izin:[], sakit:[], alpa:[] };
+      }
+      const h = hasil[row.nama];
+
+      if (statusLower.includes("izin")){ h.izin.push(tanggalStr); continue; }
+      if (statusLower.includes("sakit")){ h.sakit.push(tanggalStr); continue; }
+      if (statusLower.includes("alpa")){ h.alpa.push(tanggalStr); continue; }
+
+      if (datang === null){
+        h.tidak_masuk.push(tanggalStr);
+        continue;
+      }
+
+      const batas = getBatas(row.jabatan, datang);
+      if (datang > batas) h.terlambat.push(tanggalStr);
+
+      if (pulang === null) h.tidak_pulang.push(tanggalStr);
+    }
+    return hasil;
+  }
+
+  function deteksiPeriode(rows){
+    if (!rows.length) return { label: "Tidak diketahui", y:0, m:0 };
+    const counts = {};
+    for (const r of rows){
+      const key = `${r.tanggal.y}-${r.tanggal.m}`;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    let best = null, bestCount = -1;
+    for (const k of Object.keys(counts).sort()){
+      if (counts[k] > bestCount){ bestCount = counts[k]; best = k; }
+    }
+    const [y,m] = best.split("-").map(Number);
+    return { label: `${BULAN_ID[m]} ${y}`, y, m };
+  }
+
+  function formatOutputText(hasil){
+    const lines = [];
+    let adaMasalah = false;
+    for (const nama in hasil){
+      const d = hasil[nama];
+      const total = KATEGORI_URUT.reduce((sum,k) => sum + d[k].length, 0);
+      if (!total) continue;
+      adaMasalah = true;
+      lines.push(`${nama} - ${d.jabatan}`);
+      for (const k of KATEGORI_URUT){
+        if (d[k].length) lines.push(`${gabungTanggal(d[k])} ${KATEGORI_LABEL[k]}`);
+      }
+      lines.push("");
+    }
+    if (!adaMasalah) lines.push("Tidak ada pelanggaran presensi pada periode ini.");
+    return lines.join("\n").trim();
+  }
+
+  // ─────────────────────────────────────────────
+  //  STATE & DOM
+  // ─────────────────────────────────────────────
+
+  const state = { hasil:null, periode:null, totalBaris:0, fileName:"", filter:"semua", search:"" };
+
+  const $ = id => document.getElementById(id);
+  const dropzone = $("dropzone"), fileInput = $("fileInput"), errorBanner = $("errorBanner");
+  const uploadSection = $("uploadSection"), processingState = $("processingState"), resultsSection = $("resultsSection");
+  const processingLabel = $("processingLabel");
+  const wait = ms => new Promise(res => setTimeout(res, ms));
+
+  function showError(msg){
+    errorBanner.hidden = false;
+    errorBanner.innerHTML = `<strong>File tidak dapat diproses</strong>${msg}`;
+  }
+  function hideError(){ errorBanner.hidden = true; errorBanner.innerHTML = ""; }
+
+  // ---------- Drag & drop / pilih file ----------
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); fileInput.click(); } });
+  ["dragenter","dragover"].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add("is-drag"); }));
+  ["dragleave","drop"].forEach(evt => dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove("is-drag"); }));
+  dropzone.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+  fileInput.addEventListener("change", e => { const f = e.target.files[0]; if (f) handleFile(f); });
+
+  async function handleFile(file){
+    hideError();
+    if (!/\.(xlsx|xls)$/i.test(file.name)){
+      showError("Format file tidak dikenali. Unggah file Excel (.xlsx atau .xls).");
+      return;
+    }
+    uploadSection.hidden = true;
+    processingState.hidden = false;
+    processingLabel.textContent = "Membaca file…";
+
+    try{
+      if (typeof XLSX === "undefined") throw new Error("Pustaka pembaca Excel gagal dimuat. Periksa koneksi internet lalu muat ulang halaman.");
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type:"array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, raw:true, defval:"" });
+
+      processingLabel.textContent = "Menganalisis presensi…";
+      const cleaned = loadData(rows);
+      if (!cleaned.length){
+        throw new Error("Tidak ditemukan baris data dengan tanggal yang valid. Periksa format kolom TANGGAL.");
+      }
+      const periode = deteksiPeriode(cleaned);
+      const hasil = prosesRekap(cleaned);
+
+      await wait(450);
+
+      state.hasil = hasil; state.periode = periode; state.totalBaris = cleaned.length;
+      state.fileName = file.name; state.filter = "semua"; state.search = "";
+
+      renderResults();
+      processingState.hidden = true;
+      resultsSection.hidden = false;
+      $("stampMark").classList.remove("is-in");
+      void $("stampMark").offsetWidth;
+      $("stampMark").classList.add("is-in");
+
+    } catch(err){
+      processingState.hidden = true;
+      uploadSection.hidden = false;
+      showError(err.message || "Terjadi kesalahan saat membaca file.");
+    } finally {
+      fileInput.value = "";
+    }
+  }
+
+  // ---------- Render hasil ----------
+  function hitungTotalKategori(hasil, kategori){
+    let total = 0;
+    for (const nama in hasil) total += hasil[nama][kategori].length;
+    return total;
+  }
+  function hitungPegawaiBermasalah(hasil){
+    let n = 0;
+    for (const nama in hasil){
+      if (KATEGORI_URUT.some(k => hasil[nama][k].length)) n++;
+    }
+    return n;
+  }
+
+  function renderResults(){
+    const { hasil, periode, totalBaris, fileName } = state;
+
+    $("stampText").textContent = periode.label.toUpperCase().replace(" ", "\n");
+    $("periodTitle").textContent = `Periode ${periode.label}`;
+    $("periodSub").textContent = `${totalBaris} baris data valid`;
+    $("fileInfo").textContent = fileName ? `Sumber: ${fileName}` : "";
+
+    const pegawaiBermasalah = hitungPegawaiBermasalah(hasil);
+    $("summaryStrip").innerHTML = `
+      <div class="summary-cell"><div class="summary-cell__num">${totalBaris}</div><div class="summary-cell__label">Baris data</div></div>
+      <div class="summary-cell"><div class="summary-cell__num">${Object.keys(hasil).length}</div><div class="summary-cell__label">Pegawai tercatat</div></div>
+      <div class="summary-cell"><div class="summary-cell__num">${pegawaiBermasalah}</div><div class="summary-cell__label">Pegawai bermasalah</div></div>
+    `;
+
+    const chips = ["semua", ...KATEGORI_URUT];
+    $("chips").innerHTML = chips.map(k => {
+      const label = k === "semua" ? "Semua" : KATEGORI_LABEL[k];
+      const count = k === "semua" ? pegawaiBermasalah : hitungTotalKategori(hasil, k);
+      const active = state.filter === k ? "is-active" : "";
+      return `<button class="chip ${active}" data-color="${k}" data-filter="${k}" type="button">${label} (${count})</button>`;
+    }).join("");
+    $("chips").querySelectorAll(".chip").forEach(btn => {
+      btn.addEventListener("click", () => { state.filter = btn.dataset.filter; renderResults(); });
+    });
+
+    $("searchInput").value = state.search;
+
+    renderCards();
+  }
+
+  function renderCards(){
+    const { hasil, filter, search } = state;
+    const searchLower = search.trim().toLowerCase();
+    const container = $("cardsContainer");
+    const emptyState = $("emptyState");
+    const noMatch = $("noMatch");
+
+    const entries = Object.keys(hasil).map(nama => ({ nama, data: hasil[nama] }))
+      .filter(({ data }) => KATEGORI_URUT.some(k => data[k].length));
+
+    if (!entries.length){
+      container.innerHTML = "";
+      emptyState.hidden = false;
+      noMatch.hidden = true;
+      return;
+    }
+    emptyState.hidden = true;
+
+    const filtered = entries.filter(({ nama, data }) => {
+      const matchesFilter = filter === "semua" || data[filter].length > 0;
+      const matchesSearch = !searchLower ||
+        nama.toLowerCase().includes(searchLower) ||
+        (data.jabatan || "").toLowerCase().includes(searchLower);
+      return matchesFilter && matchesSearch;
+    });
+
+    if (!filtered.length){
+      container.innerHTML = "";
+      noMatch.hidden = false;
+      return;
+    }
+    noMatch.hidden = true;
+
+    container.innerHTML = filtered.map(({ nama, data }) => {
+      const kategoriTampil = filter === "semua" ? KATEGORI_URUT : [filter];
+      const entryLines = kategoriTampil
+        .filter(k => data[k].length)
+        .map(k => `
+          <li class="entry entry--${k}">
+            <span class="entry__label">${KATEGORI_LABEL[k]}</span>
+            <span class="entry__dates">${escapeHtml(gabungTanggal(data[k]))}</span>
+          </li>`).join("");
+      return `
+        <article class="card">
+          <div class="card__head">
+            <h3 class="card__name">${escapeHtml(nama)}</h3>
+            <span class="card__role">${escapeHtml(data.jabatan || "—")}</span>
+          </div>
+          <ul class="card__entries">${entryLines}</ul>
+        </article>`;
+    }).join("");
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  $("searchInput").addEventListener("input", e => { state.search = e.target.value; renderCards(); });
+
+  $("downloadBtn").addEventListener("click", () => {
+    if (!state.hasil) return;
+    const text = formatOutputText(state.hasil);
+    const filename = `Rekap_Presensi_${state.periode.label.replace(/ /g,"_")}.txt`;
+    const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  });
+
+  $("resetBtn").addEventListener("click", () => {
+    state.hasil = null; state.periode = null; state.filter = "semua"; state.search = "";
+    resultsSection.hidden = true;
+    uploadSection.hidden = false;
+    $("fileInfo").textContent = "";
+    hideError();
+  });
+
+})();
+</script>
+</body>
+</html>
