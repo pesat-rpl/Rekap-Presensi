@@ -1043,7 +1043,7 @@
   $("downloadBtn").addEventListener("click", () => {
     if (!state.hasil) return;
     const text = formatOutputText(state.hasil);
-    const filename = `Rekap_Presensi_${state.periode.label.replace(/ /g,"_")}.txt`;
+    const filename = `Rekap_Presensi_${state.periode.label.replace(/ /g,"_")}.doc`;
     const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
