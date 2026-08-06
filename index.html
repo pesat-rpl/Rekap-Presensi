@@ -556,6 +556,7 @@
         <p class="info-note">
           File harus memiliki baris header dengan kolom <code>NAMA</code>, <code>JABATAN</code>, <code>TANGGAL</code>, <code>DATANG</code>, <code>PULANG</code>, dan <code>STATUS</code>. Kolom <code>KETERANGAN</code> bersifat opsional.
           Baris dengan status <code>Dinas Luar</code> atau <code>Cuti</code> dilewati. Baris dengan keterangan/status mengandung kata <code>libur</code> juga dilewati. Status <code>Izin</code>, <code>Sakit</code>, dan <code>Alpa</code> tetap direkap.
+          Penulisan <code>Izin</code> maupun <code>Ijin</code> dianggap sama dan akan selalu direkap dengan sebutan &ldquo;Izin&rdquo;.
         </p>
         <table class="info-table">
           <thead><tr><th>NAMA</th><th>JABATAN</th><th>TANGGAL</th><th>DATANG</th><th>PULANG</th><th>STATUS</th></tr></thead>
@@ -587,7 +588,7 @@
         </div>
         <div class="results-actions">
           <button class="btn" id="resetBtn" type="button">Ganti file</button>
-          <button class="btn btn--primary" id="downloadBtn" type="button">Unduh .doc</button>
+          <button class="btn btn--primary" id="downloadBtn" type="button">Unduh Word (.doc)</button>
         </div>
       </div>
 
@@ -814,7 +815,7 @@
       }
       const h = hasil[row.nama];
 
-      if (statusLower.includes("izin")){ h.izin.push(tanggalStr); continue; }
+      if (statusLower.includes("izin") || statusLower.includes("ijin")){ h.izin.push(tanggalStr); continue; }
       if (statusLower.includes("sakit")){ h.sakit.push(tanggalStr); continue; }
       if (statusLower.includes("alpa")){ h.alpa.push(tanggalStr); continue; }
 
@@ -846,22 +847,38 @@
     return { label: `${BULAN_ID[m]} ${y}`, y, m };
   }
 
-  function formatOutputText(hasil){
-    const lines = [];
+  // Menghasilkan dokumen kompatibel Word (.doc) dengan nama & jabatan dicetak tebal.
+  // Word membuka file HTML yang disimpan dengan ekstensi .doc secara langsung,
+  // sehingga tidak perlu pustaka eksternal untuk membuat file .docx yang sesungguhnya.
+  function buildWordDocument(hasil, periodeLabel){
+    let body = "";
     let adaMasalah = false;
     for (const nama in hasil){
       const d = hasil[nama];
       const total = KATEGORI_URUT.reduce((sum,k) => sum + d[k].length, 0);
       if (!total) continue;
       adaMasalah = true;
-      lines.push(`${nama} - ${d.jabatan}`);
+      body += `<p><b>${escapeHtml(nama)} - ${escapeHtml(d.jabatan)}</b></p>`;
       for (const k of KATEGORI_URUT){
-        if (d[k].length) lines.push(`${gabungTanggal(d[k])} ${KATEGORI_LABEL[k]}`);
+        if (d[k].length) body += `<p>${escapeHtml(gabungTanggal(d[k]))} ${KATEGORI_LABEL[k]}</p>`;
       }
-      lines.push("");
+      body += `<p>&nbsp;</p>`;
     }
-    if (!adaMasalah) lines.push("Tidak ada pelanggaran presensi pada periode ini.");
-    return lines.join("\n").trim();
+    if (!adaMasalah) body = "<p>Tidak ada pelanggaran presensi pada periode ini.</p>";
+
+    return `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+<head><meta charset="utf-8"><title>Rekap Presensi ${escapeHtml(periodeLabel)}</title>
+<style>
+  body{ font-family:Calibri, Arial, sans-serif; font-size:11pt; color:#1B2740; }
+  h1{ font-size:16pt; margin-bottom:14pt; }
+  p{ margin:0 0 4pt 0; }
+</style>
+</head>
+<body>
+<h1>Rekap Presensi &ndash; ${escapeHtml(periodeLabel)}</h1>
+${body}
+</body>
+</html>`;
   }
 
   // ─────────────────────────────────────────────
@@ -1042,9 +1059,9 @@
 
   $("downloadBtn").addEventListener("click", () => {
     if (!state.hasil) return;
-    const text = formatOutputText(state.hasil);
+    const html = buildWordDocument(state.hasil, state.periode.label);
     const filename = `Rekap_Presensi_${state.periode.label.replace(/ /g,"_")}.doc`;
-    const blob = new Blob([text], { type:"text/plain;charset=utf-8" });
+    const blob = new Blob(["\ufeff", html], { type:"application/msword" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url; a.download = filename;
