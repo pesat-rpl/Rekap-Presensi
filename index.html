@@ -452,13 +452,111 @@
     font-family:'IBM Plex Mono', monospace;
     white-space:nowrap;
   }
-  .entry__dates{ color:var(--ink-soft); }
+  .entry{ align-items:flex-start; flex-wrap:wrap; }
+  .entry__dates{ color:var(--ink-soft); display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
   .entry--terlambat .entry__label{ background:var(--ochre-soft); color:var(--ochre); }
   .entry--tidak_masuk .entry__label{ background:var(--stamp-soft); color:var(--stamp); }
   .entry--tidak_pulang .entry__label{ background:rgba(82,92,114,0.12); color:var(--ink-soft); }
   .entry--izin .entry__label{ background:var(--teal-soft); color:var(--teal); }
   .entry--sakit .entry__label{ background:var(--violet-soft); color:var(--violet); }
   .entry--alpa .entry__label{ background:var(--stamp); color:#fff; }
+
+  /* ---------- DATE CHIPS (edit/hapus per tanggal) ---------- */
+  .date-chip{
+    display:inline-flex; align-items:center; gap:4px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:3px 4px 3px 9px;
+    font-size:12.5px;
+    color:var(--ink);
+    cursor:pointer;
+    transition:border-color .15s ease, background-color .15s ease;
+  }
+  .date-chip:hover{ border-color:var(--line-strong); background:var(--surface); }
+  .date-chip__del{
+    display:flex; align-items:center; justify-content:center;
+    width:16px; height:16px;
+    border:none; border-radius:50%;
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:14px; line-height:1;
+    cursor:pointer; padding:0;
+  }
+  .date-chip__del:hover{ background:var(--stamp-soft); color:var(--stamp); }
+  .date-chip-add{
+    display:inline-flex; align-items:center;
+    border:1px dashed var(--line-strong);
+    border-radius:12px;
+    padding:3px 10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:transparent;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .date-chip-add:hover{ border-color:var(--stamp); color:var(--stamp); }
+
+  .card__foot{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+  }
+  .btn-add-cat{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    background:transparent;
+    border:1px dashed var(--line-strong);
+    border-radius:6px;
+    padding:5px 10px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn-add-cat:hover{ border-color:var(--stamp); color:var(--stamp); }
+
+  /* ---------- EDIT MODAL ---------- */
+  .modal-overlay{
+    position:fixed; inset:0;
+    background:rgba(27,39,64,0.4);
+    display:flex; align-items:center; justify-content:center;
+    padding:16px;
+    z-index:100;
+  }
+  .modal-overlay[hidden]{ display:none; }
+  .modal-box{
+    background:var(--surface);
+    border-radius:10px;
+    padding:22px;
+    width:100%; max-width:320px;
+    box-shadow:var(--shadow);
+  }
+  .modal-box h4{
+    margin:0 0 14px;
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16px;
+  }
+  .modal-field{ margin-bottom:14px; }
+  .modal-field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+  }
+  .modal-field select, .modal-field input{
+    width:100%;
+    padding:9px 10px;
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    font-size:14px;
+    font-family:inherit;
+    background:var(--paper);
+    color:var(--ink);
+    box-sizing:border-box;
+  }
+  .modal-actions{
+    display:flex; justify-content:flex-end; gap:8px;
+    margin-top:6px;
+  }
 
   .empty-state{
     text-align:center;
@@ -620,6 +718,24 @@
     <span id="fileInfo"></span>
   </footer>
 
+</div>
+
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h4 id="modalTitle">Tambah tanggal</h4>
+    <div class="modal-field" id="modalKategoriField" hidden>
+      <label for="modalKategori">Kategori</label>
+      <select id="modalKategori"></select>
+    </div>
+    <div class="modal-field">
+      <label for="modalHari">Tanggal berapa (di bulan <span id="modalBulanLabel"></span>)</label>
+      <input type="number" id="modalHari" min="1" max="31" inputmode="numeric" placeholder="cth: 27">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="modalCancel">Batal</button>
+      <button type="button" class="btn btn--primary" id="modalSave">Simpan</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -1040,11 +1156,21 @@ ${body}
       const kategoriTampil = filter === "semua" ? KATEGORI_URUT : [filter];
       const entryLines = kategoriTampil
         .filter(k => data[k].length)
-        .map(k => `
-          <li class="entry entry--${k}">
-            <span class="entry__label">${KATEGORI_LABEL[k]}</span>
-            <span class="entry__dates">${escapeHtml(gabungTanggal(data[k]))}</span>
-          </li>`).join("");
+        .map(k => {
+          const chips = data[k].map((label, idx) => `
+            <span class="date-chip" data-action="edit" data-nama="${escapeHtml(nama)}" data-kategori="${k}" data-idx="${idx}" title="Klik untuk ubah tanggal ini">
+              <span>${escapeHtml(label)}</span>
+              <button type="button" class="date-chip__del" data-action="hapus" data-nama="${escapeHtml(nama)}" data-kategori="${k}" data-idx="${idx}" title="Hapus tanggal ini">&times;</button>
+            </span>`).join("");
+          return `
+            <li class="entry entry--${k}">
+              <span class="entry__label">${KATEGORI_LABEL[k]}</span>
+              <span class="entry__dates">
+                ${chips}
+                <button type="button" class="date-chip-add" data-action="tambah" data-nama="${escapeHtml(nama)}" data-kategori="${k}" title="Tambah tanggal untuk kategori ini">+ tanggal</button>
+              </span>
+            </li>`;
+        }).join("");
       return `
         <article class="card">
           <div class="card__head">
@@ -1052,8 +1178,118 @@ ${body}
             <span class="card__role">${escapeHtml(data.jabatan || "—")}</span>
           </div>
           <ul class="card__entries">${entryLines}</ul>
+          <div class="card__foot">
+            <button type="button" class="btn-add-cat" data-action="tambah-kategori" data-nama="${escapeHtml(nama)}">+ Tambah pelanggaran lain</button>
+          </div>
         </article>`;
     }).join("");
+
+    container.querySelectorAll('[data-action="hapus"]').forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const { nama, kategori, idx } = btn.dataset;
+        hapusTanggal(nama, kategori, parseInt(idx, 10));
+      });
+    });
+    container.querySelectorAll('[data-action="edit"]').forEach(chip => {
+      chip.addEventListener("click", () => {
+        const { nama, kategori, idx } = chip.dataset;
+        bukaModalEdit(nama, kategori, parseInt(idx, 10));
+      });
+    });
+    container.querySelectorAll('[data-action="tambah"]').forEach(btn => {
+      btn.addEventListener("click", () => {
+        const { nama, kategori } = btn.dataset;
+        bukaModalTambah(nama, kategori);
+      });
+    });
+    container.querySelectorAll('[data-action="tambah-kategori"]').forEach(btn => {
+      btn.addEventListener("click", () => {
+        const { nama } = btn.dataset;
+        bukaModalTambah(nama, null);
+      });
+    });
+  }
+
+  // ---------- Modal tambah / ubah tanggal ----------
+  function jumlahHariBulan(y, m){ return new Date(Date.UTC(y, m, 0)).getUTCDate(); }
+
+  const modalOverlay = $("modalOverlay");
+  const modalTitle = $("modalTitle");
+  const modalKategoriField = $("modalKategoriField");
+  const modalKategoriSelect = $("modalKategori");
+  const modalHariInput = $("modalHari");
+  const modalBulanLabel = $("modalBulanLabel");
+  let modalCtx = null;
+
+  function bukaModalTambah(nama, kategori){
+    modalCtx = { mode:"add", nama, kategori };
+    modalTitle.textContent = kategori ? `Tambah tanggal — ${KATEGORI_LABEL[kategori]}` : "Tambah pelanggaran";
+    if (kategori){
+      modalKategoriField.hidden = true;
+    } else {
+      modalKategoriField.hidden = false;
+      modalKategoriSelect.innerHTML = KATEGORI_URUT.map(k => `<option value="${k}">${KATEGORI_LABEL[k]}</option>`).join("");
+    }
+    modalBulanLabel.textContent = state.periode ? state.periode.label : "";
+    modalHariInput.value = "";
+    modalHariInput.max = state.periode ? jumlahHariBulan(state.periode.y, state.periode.m) : 31;
+    bukaModal();
+  }
+
+  function bukaModalEdit(nama, kategori, idx){
+    modalCtx = { mode:"edit", nama, kategori, idx };
+    modalTitle.textContent = `Ubah tanggal — ${KATEGORI_LABEL[kategori]}`;
+    modalKategoriField.hidden = true;
+    modalBulanLabel.textContent = state.periode ? state.periode.label : "";
+    const current = state.hasil[nama][kategori][idx];
+    modalHariInput.value = parseInt(current, 10) || "";
+    modalHariInput.max = state.periode ? jumlahHariBulan(state.periode.y, state.periode.m) : 31;
+    bukaModal();
+  }
+
+  function bukaModal(){
+    modalOverlay.hidden = false;
+    modalHariInput.focus();
+    modalHariInput.select();
+  }
+  function tutupModal(){ modalOverlay.hidden = true; modalCtx = null; }
+
+  $("modalCancel").addEventListener("click", tutupModal);
+  modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) tutupModal(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !modalOverlay.hidden) tutupModal(); });
+  modalHariInput.addEventListener("keydown", e => { if (e.key === "Enter") $("modalSave").click(); });
+
+  $("modalSave").addEventListener("click", () => {
+    if (!modalCtx || !state.periode) return;
+    const maxHari = jumlahHariBulan(state.periode.y, state.periode.m);
+    const hari = parseInt(modalHariInput.value, 10);
+    if (!hari || hari < 1 || hari > maxHari){
+      modalHariInput.focus();
+      return;
+    }
+    const label = `${String(hari).padStart(2,"0")} ${BULAN_ID[state.periode.m]}`;
+    const { mode, nama, idx } = modalCtx;
+    const kategori = modalCtx.kategori || modalKategoriSelect.value;
+
+    if (!state.hasil[nama]) return;
+    if (!state.hasil[nama][kategori]) state.hasil[nama][kategori] = [];
+
+    if (mode === "edit"){
+      state.hasil[nama][kategori][idx] = label;
+    } else {
+      state.hasil[nama][kategori].push(label);
+    }
+    state.hasil[nama][kategori].sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+
+    tutupModal();
+    renderResults();
+  });
+
+  function hapusTanggal(nama, kategori, idx){
+    if (!state.hasil[nama] || !state.hasil[nama][kategori]) return;
+    state.hasil[nama][kategori].splice(idx, 1);
+    renderResults();
   }
 
   function escapeHtml(str){
