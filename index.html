@@ -759,9 +759,14 @@
     const dataRows = rows.slice(headerRowIdx+1);
 
     // Hanya baris dengan TANGGAL valid
+    // Berhenti sebelum tabel "REKAP" yang kadang ditambahkan di bawah tabel data harian
+    // (kolom-kolomnya kebetulan sejajar dgn TANGGAL/DATANG/PULANG, sehingga angka
+    // hitungan di sana bisa salah terbaca sebagai serial tanggal Excel)
     const withDate = [];
     for (const r of dataRows){
       if (!r) continue;
+      const firstCell = String(r[0] ?? "").trim().toUpperCase();
+      if (firstCell === "REKAP") break;
       const tgl = parseTanggal(colIndex["TANGGAL"] !== undefined ? r[colIndex["TANGGAL"]] : "");
       if (!tgl) continue;
       withDate.push({ r, tgl });
